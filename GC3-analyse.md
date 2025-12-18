@@ -276,11 +276,19 @@ kicking_team<span class="token punctuation">:</span> game
 </ol>
 <hr>
 <h2 id="三种出界状态详解">6. 三种出界状态详解</h2>
-<h3 id="kick-in（边线出界）">6.1 Kick-in（边线出界）</h3>
-<p><strong>触发条件</strong>：球越过边线（touchline）（裁判来判断并给出口令）</p>
-<p><strong>球的位置</strong>：放在球出界的边线位置</p>
-<p><strong>GC操作员操作</strong>：点击<strong>获得踢球权的队伍</strong>下方的 “Kick-in” 按钮</p>
-<p><strong>机器人收到的数据包</strong>：</p>
+<h3 id="kick-in（边线出界）——-需要识别裁判手势">6.1 Kick-in（边线出界）—— 需要识别裁判手势</h3>
+<h4 id="触发条件">6.1.1 触发条件</h4>
+<p>球越过边线（touchline），无论是哪支队伍踢出去的。</p>
+<h4 id="球的位置">6.1.2 球的位置</h4>
+<p>裁判将球放在球出界的边线位置。</p>
+<h4 id="gc操作员操作流程">6.1.3 GC操作员操作流程</h4>
+<ol>
+<li>裁判观察是哪支队伍最后触球，喊出 “Kick-in &lt;颜色&gt;”（如 “Kick-in blue”）</li>
+<li>GC操作员听到后，点击<strong>获得踢球权的队伍</strong>下方的 “Kick-in” 按钮</li>
+<li>GC内部记录 <code>game.kicking_side = Some(该队伍)</code></li>
+<li>GC构建数据包并发送给机器人</li>
+</ol>
+<h4 id="机器人收到的数据包">6.1.4 机器人收到的数据包</h4>
 
 <table>
 <thead>
@@ -307,11 +315,85 @@ kicking_team<span class="token punctuation">:</span> game
 <td>30秒倒计时</td>
 </tr>
 </tbody>
-</table><h3 id="goal-kick（球门球）">6.2 Goal Kick（球门球）</h3>
-<p><strong>触发条件</strong>：球越过球门线，且最后触球的是<strong>进攻方</strong><br>
-<strong>球的位置</strong>：放在球门区角落（goal area corner）</p>
-<p><strong>GC操作员操作</strong>：点击**防守方（获得踢球权）**下方的 “Goal Kick” 按钮<br>
-<strong>机器人收到的数据包</strong>：</p>
+</table><h4 id="⭐-机器人判断踢球队伍的方式（champions-cup模式）">6.1.5 ⭐ 机器人判断踢球队伍的方式（Champions Cup模式）</h4>
+<p>由于 <code>kickingTeam = 255</code>，机器人<strong>必须通过识别裁判手势</strong>来判断哪队踢球：<br>
+<strong>B-Human 机器人端代码</strong>：</p>
+<p><strong>文件位置</strong>: <code>Src/Modules/Infrastructure/GameStateProvider/GameStateProvider.cpp</code></p>
+<p><strong>第861-879行 - 通过裁判手势判断Kick-in踢球队伍</strong>：</p>
+<pre class=" language-cpp"><code class="prism  language-cpp"><span class="token keyword">void</span> GameStateProvider<span class="token operator">::</span><span class="token function">updateKickingTeamByRefereeSignal</span><span class="token punctuation">(</span>GameState<span class="token operator">&amp;</span>  gameState<span class="token punctuation">)</span>
+
+<span class="token punctuation">{</span>
+<span class="token comment">// Only execute during free kick when the kicking team is hidden.</span>
+<span class="token comment">// 只在free kick且踢球队伍被隐藏时执行</span>
+<span class="token keyword">if</span><span class="token punctuation">(</span>gameState<span class="token punctuation">.</span>kickingTeamKnown <span class="token operator">||</span> <span class="token operator">!</span>gameState<span class="token punctuation">.</span><span class="token function">isKickIn</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+	<span class="token keyword">return</span><span class="token punctuation">;</span>
+
+<span class="token comment">// 检测裁判手势：leftHandTeam表示左边队伍，根据手势方向判断</span>
+<span class="token comment">// kickInRight = 裁判手臂指向右边球门 → 左边队伍踢球</span>
+<span class="token comment">// kickInLeft = 裁判手臂指向左边球门 → 右边队伍踢球</span>
+<span class="token keyword">const</span>  <span class="token keyword">bool</span> forOwnTeam <span class="token operator">=</span> <span class="token function">checkForRefereeSignal</span><span class="token punctuation">(</span>gameState<span class="token punctuation">,</span>
+gameState<span class="token punctuation">.</span>leftHandTeam <span class="token operator">?</span> RefereeSignal<span class="token operator">::</span>kickInRight <span class="token operator">:</span> RefereeSignal<span class="token operator">::</span>kickInLeft<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">const</span>  <span class="token keyword">bool</span> forOpponentTeam <span class="token operator">=</span> <span class="token function">checkForRefereeSignal</span><span class="token punctuation">(</span>gameState<span class="token punctuation">,</span>
+gameState<span class="token punctuation">.</span>leftHandTeam <span class="token operator">?</span> RefereeSignal<span class="token operator">::</span>kickInLeft <span class="token operator">:</span> RefereeSignal<span class="token operator">::</span>kickInRight<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token keyword">if</span><span class="token punctuation">(</span>forOwnTeam<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+isKickingTeam <span class="token operator">=</span> <span class="token boolean">true</span><span class="token punctuation">;</span> <span class="token comment">// 我方踢球</span>
+gameState<span class="token punctuation">.</span>state <span class="token operator">=</span> GameState<span class="token operator">::</span>ownKickIn<span class="token punctuation">;</span> <span class="token comment">// 更新状态为我方Kick-in</span>
+<span class="token punctuation">}</span>
+<span class="token keyword">if</span><span class="token punctuation">(</span>forOpponentTeam<span class="token punctuation">)</span> <span class="token comment">// or for both teams</span>
+<span class="token punctuation">{</span>
+isKickingTeam <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span> <span class="token comment">// 对方踢球</span>
+gameState<span class="token punctuation">.</span>state <span class="token operator">=</span> GameState<span class="token operator">::</span>opponentKickIn<span class="token punctuation">;</span> <span class="token comment">// 更新状态为对方Kick-in</span>
+<span class="token punctuation">}</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p><strong>第991-997行 - 处理GC数据包中的Kick-in</strong>：</p>
+<pre class=" language-cpp"><code class="prism  language-cpp"><span class="token keyword">else</span>  <span class="token keyword">if</span><span class="token punctuation">(</span>gameControllerData<span class="token punctuation">.</span>setPlay <span class="token operator">==</span> SET_PLAY_KICK_IN<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+<span class="token comment">// 如果kickingTeam无效(=255)且不是之前的Kick-in状态，默认假设对方踢球</span>
+<span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>isKickingTeamValid <span class="token operator">&amp;&amp;</span> <span class="token operator">!</span>GameState<span class="token operator">::</span><span class="token function">isKickIn</span><span class="token punctuation">(</span>lastGameControllerState<span class="token punctuation">)</span><span class="token punctuation">)</span>
+isKickingTeam <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span> <span class="token comment">// 默认假设对方踢球，等待裁判手势确认</span>
+<span class="token keyword">return</span> isKickingTeam <span class="token operator">?</span> GameState<span class="token operator">::</span>ownKickIn <span class="token operator">:</span> GameState<span class="token operator">::</span>opponentKickIn<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p><strong>代码解释</strong>：</p>
+<ol>
+<li>机器人收到 <code>setPlay = SET_PLAY_KICK_IN</code> 且 <code>kickingTeam = 255</code></li>
+<li>默认先假设对方踢球（<code>isKickingTeam = false</code>）</li>
+<li>调用 <code>updateKickingTeamByRefereeSignal()</code> 检测裁判手势</li>
+<li>根据检测到的手势方向更新 <code>isKickingTeam</code> 和游戏状态</li>
+</ol>
+<p><strong>判断流程图</strong>：</p>
+<pre><code>			机器人收到 setPlay=4, kickingTeam=255
+							↓
+			默认假设对方踢球 (isKickingTeam=false)
+							↓
+			调用 updateKickingTeamByRefereeSignal()
+							↓
+				检测裁判手势 (RefereeSignal)
+							↓
+				  ┌─────────┴─────────┐
+				  ↓ 				  ↓
+			检测到kickInRight 	检测到kickInLeft
+			(手臂指向右球门) 		(手臂指向左球门)
+				  ↓                   ↓
+			左边队伍踢球 			右边队伍踢球
+				  ↓		 			  ↓
+          更新 isKickingTeam 和 gameState.state
+</code></pre>
+<hr>
+<h3 id="goal-kick（球门球）——-根据球位置判断">6.2 Goal Kick（球门球）—— 根据球位置判断</h3>
+<h4 id="触发条件-1">6.2.1 触发条件</h4>
+<p>球越过球门线（goal line），且最后触球的是<strong>进攻方</strong>（即球被踢向对方球门但出界）。</p>
+<h4 id="球的位置-1">6.2.2 球的位置</h4>
+<p>裁判将球放在<strong>球门区角落</strong>（goal area corner），即球门区线与球门线的交点内侧。</p>
+<h4 id="gc操作员操作流程-1">6.2.3 GC操作员操作流程</h4>
+<ol>
+<li>裁判观察到进攻方将球踢出球门线，喊出 “Goal Kick &lt;颜色&gt;”（例如 “Goal Kick red”）</li>
+<li>GC操作员点击**防守方（获得踢球权）**下方的 “Goal Kick” 按钮</li>
+<li>裁判将球放在球门区角落</li>
+</ol>
+<h4 id="机器人收到的数据包-1">6.2.4 机器人收到的数据包</h4>
 
 <table>
 <thead>
@@ -338,40 +420,235 @@ kicking_team<span class="token punctuation">:</span> game
 <td>30秒倒计时</td>
 </tr>
 </tbody>
-</table><h3 id="corner-kick（角球）">6.3 Corner Kick（角球）</h3>
-<p><strong>触发条件</strong>：球越过球门线，且最后触球的是<strong>防守方</strong></p>
-<p><strong>球的位置</strong>：放在角球点（corner）</p>
-<p><strong>GC操作员操作</strong>：点击**进攻方（获得踢球权）**下方的 “Corner Kick” 按钮<br>
-<strong>机器人收到的数据包</strong>：</p>
-
-<table>
-<thead>
-<tr>
-<th>字段</th>
-<th>Champions Cup</th>
-<th>Challenge Shield</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>setPlay</td>
-<td>3 (SET_PLAY_CORNER_KICK)</td>
-<td>3 (SET_PLAY_CORNER_KICK)</td>
-</tr>
-<tr>
-<td>kickingTeam</td>
-<td><strong>255 (未知)</strong></td>
-<td>队伍编号</td>
-</tr>
-<tr>
-<td>secondaryTime</td>
-<td>30秒倒计时</td>
-<td>30秒倒计时</td>
-</tr>
-</tbody>
-</table><h2 id="附录：代码流程图">附录：代码流程图</h2>
+</table><h4 id="⭐-机器人判断踢球队伍的方式（champions-cup模式）-1">6.2.5 ⭐ 机器人判断踢球队伍的方式（Champions Cup模式）</h4>
+<p>Goal Kick的特点是：<strong>球一定放在某支队伍防守的球门区角落，该队伍获得踢球权</strong>。</p>
+<p>机器人可以通过<strong>球的位置</strong>和<strong>球所在的半场</strong>来判断：</p>
+<p><strong>判断逻辑</strong>：</p>
+<pre><code>Goal Kick规则：
+- 球放在【防守方】的球门区角落
+- 【防守方】获得踢球权
+- 因此：球在哪个半场的球门区，哪支队伍踢球
+</code></pre>
+<p><strong>B-Human 机器人端代码</strong>：</p>
+<p><strong>文件位置</strong>: <code>Src/Modules/Infrastructure/GameStateProvider/GameStateProvider.cpp</code></p>
+<p><strong>第999-1008行 - 通过球位置判断Goal Kick踢球队伍</strong>：</p>
+<pre class=" language-cpp"><code class="prism  language-cpp"><span class="token keyword">else</span>  <span class="token keyword">if</span><span class="token punctuation">(</span>gameControllerData<span class="token punctuation">.</span>setPlay <span class="token operator">==</span> SET_PLAY_GOAL_KICK<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+	<span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>isKickingTeamValid<span class="token punctuation">)</span> <span class="token comment">// kickingTeam == 255，需要自己判断</span>
+	<span class="token punctuation">{</span>
+		<span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>gameStateOverridden <span class="token operator">&amp;&amp;</span> theTeamBallModel<span class="token punctuation">.</span>isValid<span class="token punctuation">)</span>
+<span class="token comment">// 关键判断：球的x坐标 &lt; 0 表示球在我方半场（我方防守的球门区）</span>
+<span class="token comment">// 因此我方踢球 (isKickingTeam = true)</span>
+			isKickingTeam <span class="token operator">=</span> theTeamBallModel<span class="token punctuation">.</span>position<span class="token punctuation">.</span><span class="token function">x</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span><span class="token punctuation">;</span>
+		<span class="token keyword">else</span>  <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>GameState<span class="token operator">::</span><span class="token function">isGoalKick</span><span class="token punctuation">(</span>lastGameControllerState<span class="token punctuation">)</span><span class="token punctuation">)</span>
+			isKickingTeam <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span> <span class="token comment">// 无法判断时默认对方踢球</span>
+<span class="token punctuation">}</span>
+	<span class="token keyword">return</span> isKickingTeam <span class="token operator">?</span> GameState<span class="token operator">::</span>ownGoalKick <span class="token operator">:</span> GameState<span class="token operator">::</span>opponentGoalKick<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p><strong>代码解释</strong>：</p>
+<ol>
+<li>机器人收到 <code>setPlay = SET_PLAY_GOAL_KICK</code> 且 <code>kickingTeam = 255</code></li>
+<li>检查 <code>theTeamBallModel.isValid</code>（球位置是否有效）</li>
+<li><strong>关键判断</strong>：<code>theTeamBallModel.position.x() &lt; 0</code></li>
+</ol>
+<ul>
+<li><code>x &lt; 0</code>：球在我方半场（我方防守的球门区）→ <strong>我方踢球</strong></li>
+<li><code>x &gt; 0</code>：球在对方半场（对方防守的球门区）→ <strong>对方踢球</strong></li>
+</ul>
+<ol start="4">
+<li>根据判断结果返回 <code>ownGoalKick</code> 或 <code>opponentGoalKick</code></li>
+</ol>
+<p><strong>坐标系说明</strong>：</p>
 <pre><code>
-	GC操作员点击 Goal Kick/Kick-in/Corner Kick 按钮
+B-Human坐标系（从我方视角）：
+		 对方球门
+			↑
+	 ───────┼─────── x &gt; 0 (对方半场)
+			│
+	 ───────┼─────── x = 0 (中线)
+			│
+	 ───────┼─────── x &lt; 0 (我方半场)
+			↓
+		 我方球门
+</code></pre>
+<p><strong>判断流程图</strong>：</p>
+<pre><code>		机器人收到 setPlay=1 (Goal Kick), kickingTeam=255
+							↓
+				检查 theTeamBallModel.isValid
+							↓
+			获取球位置 theTeamBallModel.position.x()
+							↓
+				 ┌──────────┴──────────┐
+				 ↓ 					   ↓
+				x &lt; 0 				 x &gt; 0
+			(球在我方半场) 	      (球在对方半场)
+				 ↓ 					   ↓
+		isKickingTeam=true 		isKickingTeam=false
+			 (我方踢球) 				(对方踢球)
+				 ↓ 					   ↓
+		返回 ownGoalKick 		返回 opponentGoalKick
+</code></pre>
+<p><strong>示例场景</strong>：</p>
+<pre><code>假设：我方防守左球门（x&lt;0的一侧），对方防守右球门（x&gt;0的一侧）
+场景：对方进攻，将球踢出我方的球门线
+结果：
+- 裁判喊 "Goal Kick"
+- 球放在我方半场的球门区角落
+- theTeamBallModel.position.x() &lt; 0
+- isKickingTeam = true → 我方踢球
+- 返回 GameState::ownGoalKick
+</code></pre>
+<hr>
+<h3 id="corner-kick（角球）——-根据球位置判断">6.3 Corner Kick（角球）—— 根据球位置判断</h3>
+<h4 id="触发条件-2">6.3.1 触发条件</h4>
+<p>球越过球门线（goal line），且最后触球的是<strong>防守方</strong>（即守门员或后卫将球踢出自己的球门线）。</p>
+<h4 id="球的位置-2">6.3.2 球的位置</h4>
+<p>裁判将球放在<strong>角球点</strong>（corner），即球门线与边线的交点。</p>
+<h4 id="gc操作员操作流程-2">6.3.3 GC操作员操作流程</h4>
+<ol>
+<li>裁判观察到防守方将球踢出球门线，喊出 “Corner Kick &lt;颜色&gt;”（如 “Corner Kick blue”）</li>
+<li>GC操作员点击**进攻方（获得踢球权）**下方的 “Corner Kick” 按钮</li>
+<li>裁判将球放在角球点</li>
+</ol>
+<h4 id="机器人收到的数据包-2">6.3.4 机器人收到的数据包</h4>
+
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>Champions Cup</th>
+<th>Challenge Shield</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>setPlay</td>
+<td>3 (SET_PLAY_CORNER_KICK)</td>
+<td>3 (SET_PLAY_CORNER_KICK)</td>
+</tr>
+<tr>
+<td>kickingTeam</td>
+<td><strong>255 (未知)</strong></td>
+<td>队伍编号</td>
+</tr>
+<tr>
+<td>secondaryTime</td>
+<td>30秒倒计时</td>
+<td>30秒倒计时</td>
+</tr>
+</tbody>
+</table><h4 id="⭐-机器人判断踢球队伍的方式（champions-cup模式）-2">6.3.5 ⭐ 机器人判断踢球队伍的方式（Champions Cup模式）</h4>
+<p>Corner Kick的特点是：<strong>球放在某支队伍防守的半场角落，但由对方（进攻方）踢球</strong>。</p>
+<p>这与Goal Kick相反：</p>
+<ul>
+<li>Goal Kick：球在哪个半场，<strong>该半场的防守队伍</strong>踢球</li>
+<li>Corner Kick：球在哪个半场，**对方队伍（进攻方）**踢球</li>
+</ul>
+<p><strong>判断逻辑</strong>：</p>
+<pre><code>
+Corner Kick规则：
+- 球放在【防守方】的半场角落
+- 【进攻方】获得踢球权
+- 因此：球在哪个半场的角落，【另一支队伍】踢球
+</code></pre>
+<p><strong>B-Human 机器人端实际代码</strong>：</p>
+<p><strong>文件位置</strong>: <code>Src/Modules/Infrastructure/GameStateProvider/GameStateProvider.cpp</code></p>
+<p><strong>第1009-1019行 - 通过球位置判断Corner Kick踢球队伍</strong>：</p>
+<pre class=" language-cpp"><code class="prism  language-cpp">
+<span class="token keyword">else</span>  <span class="token keyword">if</span><span class="token punctuation">(</span>gameControllerData<span class="token punctuation">.</span>setPlay <span class="token operator">==</span> SET_PLAY_CORNER_KICK<span class="token punctuation">)</span>
+<span class="token punctuation">{</span>
+	<span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>isKickingTeamValid<span class="token punctuation">)</span> <span class="token comment">// kickingTeam == 255，需要自己判断</span>
+	<span class="token punctuation">{</span>
+		<span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>gameStateOverridden <span class="token operator">&amp;&amp;</span> theTeamBallModel<span class="token punctuation">.</span>isValid<span class="token punctuation">)</span>
+	<span class="token comment">// 关键判断：球的x坐标 &gt; 0 表示球在对方半场（对方防守的角落）</span>
+	<span class="token comment">// Corner Kick由进攻方踢，所以球在对方半场时我方踢球</span>
+		isKickingTeam <span class="token operator">=</span> theTeamBallModel<span class="token punctuation">.</span>position<span class="token punctuation">.</span><span class="token function">x</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">;</span>
+		<span class="token keyword">else</span>  <span class="token keyword">if</span><span class="token punctuation">(</span><span class="token operator">!</span>GameState<span class="token operator">::</span><span class="token function">isCornerKick</span><span class="token punctuation">(</span>lastGameControllerState<span class="token punctuation">)</span><span class="token punctuation">)</span>
+		 isKickingTeam <span class="token operator">=</span> <span class="token boolean">false</span><span class="token punctuation">;</span> <span class="token comment">// 无法判断时默认对方踢球</span>
+<span class="token punctuation">}</span>
+	<span class="token keyword">return</span> isKickingTeam <span class="token operator">?</span> GameState<span class="token operator">::</span>ownCornerKick <span class="token operator">:</span> GameState<span class="token operator">::</span>opponentCornerKick<span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p><strong>代码解释</strong>：</p>
+<ol>
+<li>机器人收到 <code>setPlay = SET_PLAY_CORNER_KICK</code> 且 <code>kickingTeam = 255</code></li>
+<li>检查 <code>theTeamBallModel.isValid</code>（球位置是否有效）</li>
+<li><strong>关键判断</strong>：<code>theTeamBallModel.position.x() &gt; 0</code>（注意：与Goal Kick相反！）</li>
+</ol>
+<ul>
+<li><code>x &gt; 0</code>：球在对方半场（对方防守的角落）→ <strong>我方踢球</strong>（我方是进攻方）</li>
+<li><code>x &lt; 0</code>：球在我方半场（我方防守的角落）→ <strong>对方踢球</strong>（对方是进攻方）</li>
+</ul>
+<ol start="4">
+<li>根据判断结果返回 <code>ownCornerKick</code> 或 <code>opponentCornerKick</code></li>
+</ol>
+<p><strong>Goal Kick vs Corner Kick 判断对比</strong>：</p>
+<pre class=" language-cpp"><code class="prism  language-cpp"><span class="token comment">// Goal Kick: 球在我方半场 → 我方踢球（防守方踢）</span>
+isKickingTeam <span class="token operator">=</span> theTeamBallModel<span class="token punctuation">.</span>position<span class="token punctuation">.</span><span class="token function">x</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&lt;</span> <span class="token number">0</span>
+  
+<span class="token comment">// Corner Kick: 球在对方半场 → 我方踢球（进攻方踢）</span>
+
+isKickingTeam <span class="token operator">=</span> theTeamBallModel<span class="token punctuation">.</span>position<span class="token punctuation">.</span><span class="token function">x</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">&gt;</span> <span class="token number">0</span><span class="token punctuation">;</span>
+</code></pre>
+<p><strong>判断流程图</strong>：</p>
+<pre><code>		机器人收到 setPlay=3 (Corner Kick), kickingTeam=255
+								↓
+					检查 theTeamBallModel.isValid
+								↓
+				获取球位置 theTeamBallModel.position.x()
+								↓
+					 ┌──────────┴──────────┐
+					 ↓ 					   ↓
+					x &gt; 0 				 x &lt; 0
+				(球在对方半场角落) 	(球在我方半场角落)
+					 ↓ 						↓
+			isKickingTeam=true 		isKickingTeam=false
+			(我方踢球-进攻方) 		(对方踢球-进攻方)
+					↓ 						↓
+			返回 ownCornerKick  		返回 opponentCornerKick
+
+</code></pre>
+<p><strong>示例场景</strong>：</p>
+<pre><code>假设：我方防守左球门（x&lt;0的一侧），对方防守右球门（x&gt;0的一侧）
+场景：对方守门员将球踢出自己的球门线（右侧）
+结果：
+- 裁判喊 "Corner Kick"
+- 球放在对方半场的角球点
+- theTeamBallModel.position.x() &gt; 0
+- isKickingTeam = true → 我方踢球（我方是进攻方）
+- 返回 GameState::ownCornerKick
+</code></pre>
+<p><strong>三种出界状态判断方式总结</strong>：</p>
+
+<table>
+<thead>
+<tr>
+<th>出界类型</th>
+<th>判断方式</th>
+<th>关键代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Kick-in</strong></td>
+<td>识别裁判手势</td>
+<td><code>checkForRefereeSignal(RefereeSignal::kickInLeft/Right)</code></td>
+</tr>
+<tr>
+<td><strong>Goal Kick</strong></td>
+<td>球位置 x &lt; 0 → 我方踢</td>
+<td><code>isKickingTeam = theTeamBallModel.position.x() &lt; 0</code></td>
+</tr>
+<tr>
+<td><strong>Corner Kick</strong></td>
+<td>球位置 x &gt; 0 → 我方踢</td>
+<td><code>isKickingTeam = theTeamBallModel.position.x() &gt; 0</code></td>
+</tr>
+</tbody>
+</table><hr>
+<h2 id="附录：代码流程图">附录：代码流程图</h2>
+<pre><code>	GC操作员点击 Goal Kick/Kick-in/Corner Kick 按钮
 						↓
 		game.set_play = SetPlay::GoalKick/KickIn/CornerKick
 		game.kicking_side = Some(Home) 或 Some(Away)
@@ -389,7 +666,7 @@ kickingTeam = 255 				kickingTeam = 队伍编号
 		↓  								↓
 机器人不知道哪队踢球 				机器人直接知道哪队踢球
 		↓ 								↓
-需要识别裁判手势 无需额外操作
+需要识别裁判手势 					    无需额外操作
 </code></pre>
 <hr>
 <h2 id="参考资料">参考资料</h2>
