@@ -19,7 +19,7 @@
 <li><a href="#、获取并编辑gamecontroller3：">1、获取并编辑GameController3：</a></li>
 <li><a href="#、2025规则更新要点部分更新的规则">2、2025规则更新要点(部分更新的规则)</a></li>
 <li><a href="#gc模式选择说明">3.GC模式选择说明</a></li>
-<li><a href="#比赛流程详解（2025年比赛）">4. 比赛流程详解（2025年比赛）</a></li>
+<li><a href="#比赛流程详解（2026年比赛）">4. 比赛流程详解（2026年比赛）</a></li>
 <li><a href="#关键代码解析">5. 关键代码解析</a></li>
 <li><a href="#三种出界状态详解">6. 三种出界状态详解</a></li>
 <li><a href="#附录：代码流程图">附录：代码流程图</a></li>
@@ -42,8 +42,8 @@
 6.三种出界状态详解</p>
 <h2 id="、获取并编辑gamecontroller3："><strong>1、获取并编辑GameController3：</strong></h2>
 <p><strong>1.1获取源码：</strong></p>
-<pre class=" language-bash"><code class="prism  language-bash"><span class="token comment">#克隆官方仓库</span>
-<span class="token function">git</span> clone https://github.com/RoboCup-		SPL/GameController3.git
+<pre class=" language-bash"><code class="prism  language-bash"><span class="token comment"># 克隆官方仓库</span>
+<span class="token function">git</span>  clone  https://github.com/RoboCup-SPL/GameController3.git
 <span class="token function">cd</span>  GameController3
 </code></pre>
 <p><strong>1.2环境要求</strong><br>
@@ -54,7 +54,8 @@
 <li><strong>libclang</strong> (用于bindgen)</li>
 <li><strong>Tauri依赖</strong> (参考 <a href="https://tauri.app/start/prerequisites/">https://tauri.app/start/prerequisites/</a>)</li>
 </ul>
-<p><strong>1.3安装/升级Rust</strong></p>
+<p><strong>1.3安装/升级Rust</strong><br>
+如果系统Rust版本过低，使用rustup升级：</p>
 <pre class=" language-bash"><code class="prism  language-bash"><span class="token comment"># 安装rustup（如果没有）</span>
 curl  --proto  <span class="token string">'=https'</span>  --tlsv1.2  -sSf  https://sh.rustup.rs <span class="token operator">|</span> sh  -s  --  -y
 <span class="token comment"># 加载环境变量</span>
@@ -136,7 +137,7 @@ cargo run -r
 <h3 id="配置文件位置">3.2 配置文件位置</h3>
 <ul>
 <li>Champions Cup: <code>GameController3/config/champions_cup/params.yaml</code></li>
-<li>Champions Cup 5v5: <code>GameController3/config/champions_cup_5/params.yaml</code></li>
+<li>Champions Cup 5v5(我们参加这组): <code>GameController3/config/champions_cup_5/params.yaml</code></li>
 <li>Challenge Shield: <code>GameController3/config/challenge_shield/params.yaml</code></li>
 </ul>
 <h3 id="关键配置项">3.3 关键配置项</h3>
@@ -146,7 +147,7 @@ hideKickingSide: true  # 隐藏踢球队伍信息
 hideKickingSide: false  # 不隐藏踢球队伍信息
 </code></pre>
 <hr>
-<h2 id="比赛流程详解（2025年比赛）">4. 比赛流程详解（2025年比赛）</h2>
+<h2 id="比赛流程详解（2026年比赛）">4. 比赛流程详解（2026年比赛）</h2>
 <h3 id="出界处理流程（以kick-in为例）">4.1 出界处理流程（以Kick-in为例）</h3>
 <h4 id="gc操作员视角">GC操作员视角</h4>
 <ol>
