@@ -54,14 +54,49 @@
 <li><strong>libclang</strong> (用于bindgen)</li>
 <li><strong>Tauri依赖</strong> (参考 <a href="https://tauri.app/start/prerequisites/">https://tauri.app/start/prerequisites/</a>)</li>
 </ul>
-<p><strong>1.3安装/升级Rust</strong><br>
-如果系统Rust版本过低，使用rustup升级：</p>
+<h3 id="安装依赖（ubuntudebian-linux）">1.3 安装依赖（Ubuntu/Debian Linux）</h3>
+<h4 id="安装-node.js-和-npm">1.3.1 安装 Node.js 和 npm</h4>
+<pre class=" language-bash"><code class="prism  language-bash"><span class="token comment"># 方式1：使用apt安装</span>
+<span class="token function">sudo</span> apt update
+<span class="token function">sudo</span> apt <span class="token function">install</span> nodejs <span class="token function">npm</span>
+<span class="token comment"># 方式2：使用nvm安装（推荐，可以管理多版本）</span>
+curl  -o-  https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh <span class="token operator">|</span> <span class="token function">bash</span>
+<span class="token function">source</span>  ~/.bashrc
+nvm  <span class="token function">install</span>  --lts
+nvm  use  --lts
+<span class="token comment"># 验证安装</span>
+node  --version
+<span class="token function">npm</span>  --version
+</code></pre>
+<h4 id="安装-libclang">1.3.2 安装 libclang</h4>
+<pre class=" language-bash"><code class="prism  language-bash"><span class="token function">sudo</span>  apt  <span class="token function">install</span>  libclang-dev
+</code></pre>
+<h4 id="安装-tauri-依赖">1.3.3 安装 Tauri 依赖</h4>
+<p>根据 Tauri 官方文档 (<a href="https://tauri.app/start/prerequisites/">https://tauri.app/start/prerequisites/</a>)，Ubuntu/Debian 需要安装：</p>
+<pre class=" language-bash"><code class="prism  language-bash"><span class="token function">sudo</span>  apt  update
+<span class="token function">sudo</span>  apt  <span class="token function">install</span>  libwebkit2gtk-4.1-dev \
+build-essential \
+curl \
+<span class="token function">wget</span> \
+<span class="token function">file</span> \
+libxdo-dev \
+libssl-dev \
+libayatana-appindicator3-dev \
+librsvg2-dev
+</code></pre>
+<h4 id="安装升级-rust">1.3.4 安装/升级 Rust</h4>
+<p>如果系统 Rust 版本过低或未安装，使用 rustup：</p>
 <pre class=" language-bash"><code class="prism  language-bash"><span class="token comment"># 安装rustup（如果没有）</span>
 curl  --proto  <span class="token string">'=https'</span>  --tlsv1.2  -sSf  https://sh.rustup.rs <span class="token operator">|</span> sh  -s  --  -y
+  
 <span class="token comment"># 加载环境变量</span>
 <span class="token function">source</span>  <span class="token string">"<span class="token variable">$HOME</span>/.cargo/env"</span>
+  
 <span class="token comment"># 验证版本</span>
 rustc  --version  <span class="token comment"># 应该 &gt;= 1.77.2</span>
+  
+<span class="token comment"># 如果版本过低，升级Rust</span>
+rustup  update  stable
 </code></pre>
 <p><strong>1.4编译步骤</strong><br>
 <strong>步骤1：安装tauri-cli(开发模式需要)</strong></p>
