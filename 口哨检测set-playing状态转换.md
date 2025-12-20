@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>口哨检测set-playing状态转换</title>
+  <title>Whistle from set to playing</title>
   <link rel="stylesheet" href="https://stackedit.io/style.css" />
 </head>
 
