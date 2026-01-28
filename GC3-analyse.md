@@ -16,8 +16,12 @@
 <li>
 <ul>
 <li><a href="#gamecontroller3-完整指南">GameController3 完整指南</a></li>
-<li><a href="#、获取并编辑gamecontroller3：">1、获取并编辑GameController3：</a></li>
-<li><a href="#、2025规则更新要点部分更新的规则">2、2025规则更新要点(部分更新的规则)</a></li>
+<li><a href="#、获取并编辑gamecontroller3：">1、获取并编辑GameController3：</a>
+<ul>
+<li></li>
+</ul>
+</li>
+<li><a href="#规则更新要点部分更新的规则">2. 2025规则更新要点(部分更新的规则)</a></li>
 <li><a href="#gc模式选择说明">3.GC模式选择说明</a></li>
 <li><a href="#比赛流程详解（2026年比赛）">4. 比赛流程详解（2026年比赛）</a></li>
 <li><a href="#关键代码解析">5. 关键代码解析</a></li>
@@ -54,7 +58,7 @@
 <li><strong>libclang</strong> (用于bindgen)</li>
 <li><strong>Tauri依赖</strong> (参考 <a href="https://tauri.app/start/prerequisites/">https://tauri.app/start/prerequisites/</a>)</li>
 </ul>
-<h3 id="安装依赖（ubuntudebian-linux）">1.3 安装依赖（Ubuntu/Debian Linux）</h3>
+<p><strong>1.3安装依赖</strong></p>
 <h4 id="安装-node.js-和-npm">1.3.1 安装 Node.js 和 npm</h4>
 <pre class=" language-bash"><code class="prism  language-bash"><span class="token comment"># 方式1：使用apt安装</span>
 <span class="token function">sudo</span> apt update
@@ -117,7 +121,7 @@ cargo run -r
 <span class="token comment">#方式2：直接运行编译好的二进制文件或进入该目录</span>
 ./tartet/release/gamer_controller_app
 </code></pre>
-<h2 id="、2025规则更新要点部分更新的规则"><strong>2、2025规则更新要点(部分更新的规则)</strong></h2>
+<h2 id="规则更新要点部分更新的规则"><strong>2. 2025规则更新要点(部分更新的规则)</strong></h2>
 <p>根据2025-6月发布的规则文件，主要变更如下（**<strong><strong>该部分只适用2025年更新规则</strong>）：</strong></p>
 <h3 id="ready信号延迟调整">2.1 Ready信号延迟调整</h3>
 <ul>
