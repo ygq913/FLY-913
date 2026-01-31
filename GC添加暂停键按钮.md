@@ -57,28 +57,28 @@
 <h3 id="后端修改">2.1后端修改</h3>
 <p><strong>新增文件：</strong></p>
 <ul>
-<li><code>game_controller_core/src/actions/pause.rs</code> - 暂停动作实现，处理暂停状态切换</li>
-<li><code>game_controller_core/src/actions/timeout.rs</code> - 超时状态处理，管理暂停计时</li>
+<li><code>BhumanCodeRelease/GameController3/game_controller_core/src/actions/pause.rs</code> - 暂停动作实现，处理暂停状态切换</li>
+<li><code>BhumanCodeRelease/GameController3/game_controller_core/src/actions/timeout.rs</code> - 超时状态处理，管理暂停计时</li>
 </ul>
 <p><strong>修改文件：</strong></p>
 <ul>
-<li><code>game_controller_core/src/actions/mod.rs</code> - 注册暂停和恢复动作</li>
-<li><code>game_controller_msgs/src/control_message.rs</code> - 添加暂停状态的网络消息映射</li>
+<li><code>BhumanCodeRelease/GameController3/game_controller_core/src/actions/mod.rs</code> - 注册暂停和恢复动作</li>
+<li><code>BhumanCodeRelease/GameController3/game_controller_msgs/src/control_message.rs</code> - 添加暂停状态的网络消息映射</li>
 </ul>
 <h3 id="前端修改">2.2前端修改</h3>
 <p><strong>新增文件：</strong></p>
 <ul>
-<li><code>frontend/src/components/main/PauseAllButton.jsx</code> - 暂停按钮UI组件</li>
+<li><code>BhumanCodeRelease/GameController3/frontend/src/components/main/PauseAllButton.jsx</code> - 暂停按钮UI组件</li>
 </ul>
 <p><strong>修改文件：</strong></p>
 <ul>
-<li><code>frontend/src/components/main/StatePanel.jsx</code> - 在状态面板中集成暂停按钮</li>
-<li><code>frontend/src/actions.js</code> - 添加暂停和恢复动作定义</li>
+<li><code>BhumanCodeRelease/GameController3frontend/src/components/main/StatePanel.jsx</code> - 在状态面板中集成暂停按钮</li>
+<li><code>BhumanCodeRelease/GameController3/frontend/src/actions.js</code> - 添加暂停和恢复动作定义</li>
 </ul>
 <h3 id="配置修改">2.3配置修改</h3>
 <p><strong>修改文件：</strong></p>
 <ul>
-<li><code>game_controller_app/tauri.conf.json</code> - 移除窗口配置冲突，支持窗口大小调整</li>
+<li><code>BhumanCodeRelease/GameController3/game_controller_app/tauri.conf.json</code> - 移除窗口配置冲突，支持窗口大小调整</li>
 </ul>
 <h3 id="拉取方式">2.4拉取方式</h3>
 <ul>
@@ -161,13 +161,13 @@ gc  external  on
 <li><strong>预期结果</strong>：机器人恢复正常比赛行为</li>
 </ul>
 <h3 id="检查要点">5.2检查要点</h3>
-<p><strong>GameController端：</strong></p>
+<p><strong>1.GameController端：</strong></p>
 <ul>
 <li>按钮状态正确切换（暂停 ↔ 恢复）</li>
 <li>游戏状态显示为 <code>Timeout</code></li>
 <li>计时器停止计时</li>
 </ul>
-<p><strong>机器人端：</strong></p>
+<p><strong>2.机器人端：</strong></p>
 <ul>
 <li>接收到 <code>GAME_PHASE_TIMEOUT</code> 消息</li>
 <li>状态转换为 <code>GameState::timeout</code></li>
