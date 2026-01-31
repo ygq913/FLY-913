@@ -80,6 +80,11 @@
 <ul>
 <li><code>game_controller_app/tauri.conf.json</code> - 移除窗口配置冲突，支持窗口大小调整</li>
 </ul>
+<h3 id="拉取方式">2.4拉取方式</h3>
+<ul>
+<li>方案一：QQ群内zip文件：<code>GameController3修改版.zip</code></li>
+<li>方案二：github拉取连接：<a href="https://github.com/zou-git07/24Fly">https://github.com/zou-git07/24Fly</a></li>
+</ul>
 <hr>
 <h2 id="编译运行">3. 编译运行</h2>
 <h3 id="编译步骤">3.1编译步骤</h3>
