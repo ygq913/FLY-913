@@ -26,8 +26,8 @@ class Goalkeeper : public PositionRole
     (Angle)(3_deg) shouldStopRotation,                          //Stop walking if orientation to the target is less than this value
     (Vector2f)(100.f, 50.f) shouldStopTranslation,              //Stop walking is translation to the target is less than this value
     //former GoaliePoseProvider parameters
-    (float)(-150.f) goalieBaseLine,                             //The base line of a goalkeeper (the max height for the goalie in most instances). This marks the basic guarding spot for the goal.
-    (float)(200.f) distanceToGoalLineForMinimumXValue,
+    (float)(-250.f) goalieBaseLine,                             //The base line of a goalkeeper (the max height for the goalie in most instances). This marks the basic guarding spot for the goal.
+    (float)(150.f) distanceToGoalLineForMinimumXValue,
     (Angle)(120_deg) positionAngle,
     (int)(3000) timeOutBallLastSeen,
     (int)(100) timeOutBallDisappear,
